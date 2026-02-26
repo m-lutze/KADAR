@@ -1,0 +1,17 @@
+name: kadar
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pip
+  - python 3.13
+  - pip:
+      - matplotlib
+      - maturin
+      - numpy
+      - pandas
+      - pytest
+      - scikit-learn
+      - scipy
+      - seaborn
+      - sourmash
