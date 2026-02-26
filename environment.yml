@@ -6,11 +6,20 @@ dependencies:
   - pip
   - python 3.13
   - pip:
+      - isort
       - matplotlib
       - maturin
+      - mypy
       - numpy
+      - numpydoc-validation
       - pandas
+      - pre-commit
+      - pydocstyle
       - pytest
+      - pytest
+      - pytest-cov
+      - pytest-cov
+      - ruff
       - scikit-learn
       - scipy
       - seaborn
