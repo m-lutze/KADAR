@@ -1,0 +1,101 @@
+repos:
+  # ---------------------------------------------------------------------------
+  # Basic pre-commit checks
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=500, --enforce-all]
+      - id: check-ast
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # ---------------------------------------------------------------------------
+  # Rust hooks (run at pre-commit stage — all are fast)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        description: Check Rust source formatting (cargo fmt --check).
+        entry: cargo fmt --all -- --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: cargo-check
+        name: cargo check
+        description: Check the package compiles without errors.
+        entry: cargo check
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy
+        description: Lint Rust source with Clippy, treating warnings as errors.
+        entry: cargo clippy -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+  # ---------------------------------------------------------------------------
+  # Rust tests (run at pre-push stage — may recompile)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: cargo-test
+        name: cargo test
+        description: Run Rust library unit tests before pushing.
+        entry: cargo test --lib
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-push]
+
+  # ---------------------------------------------------------------------------
+  # Python: Ruff formatting checks
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.3
+    hooks:
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+      - id: ruff-format
+
+  # ---------------------------------------------------------------------------
+  # Python: numpydoc-style docstring validation for .pyi stub files
+  # Skip pytest test files (tests/) and __init__.py modules.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        name: pydocstyle (numpydoc, .pyi stubs only)
+        args:
+          - "--convention=numpy"
+          - "--add-ignore=D100,D104"
+        files: "^python/.*\\.pyi$"
+
+  # ---------------------------------------------------------------------------
+  # Python tests (run at pre-push stage — requires the extension to be built)
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        description: Run the full Python test suite before pushing.
+        entry: pytest tests/ -x -q
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]
