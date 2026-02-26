@@ -1,4 +1,4 @@
-__version__ = "1.0.0"
+__version__ = '1.0.0'
 
 # Import main classes
 from .core.kmer_profiler import KmerProfiler
@@ -10,5 +10,5 @@ __all__ = [
     'KmerProfiler',
     'GenomeIslandPredictor',
     'load_fasta_sequences',
-    'read_and_insert_islands'
+    'read_and_insert_islands',
 ]

@@ -2,17 +2,21 @@
 Functions to read existing genomic data and insert synthetic genome islands
 """
 
-import numpy as np
 import random
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+
 from .io_handlers import load_fasta_sequences
 
 
-def read_and_insert_islands(fasta_path: str,
-                          n_islands: int = 3,
-                          island_size_range: Tuple[int, int] = (5000, 20000),
-                          min_spacing: int = 10000,
-                          random_seed: Optional[int] = None) -> Dict[str, any]:
+def read_and_insert_islands(
+    fasta_path: str,
+    n_islands: int = 3,
+    island_size_range: Tuple[int, int] = (5000, 20000),
+    min_spacing: int = 10000,
+    random_seed: Optional[int] = None,
+) -> Dict[str, any]:
     """
     Read existing genome and insert synthetic islands
 
@@ -31,13 +35,13 @@ def read_and_insert_islands(fasta_path: str,
         random.seed(random_seed)
 
     # load existing sequences
-    print(f"Reading sequences from {fasta_path}")
+    print(f'Reading sequences from {fasta_path}')
     original_seqs = load_fasta_sequences(fasta_path)
 
     results = {}
 
     for seq_id, sequence in original_seqs.items():
-        print(f"Processing {seq_id} (length: {len(sequence)})")
+        print(f'Processing {seq_id} (length: {len(sequence)})')
 
         # insert islands into this sequence
         modified_seq, island_info = insert_islands_into_sequence(
@@ -49,16 +53,15 @@ def read_and_insert_islands(fasta_path: str,
             'modified_sequence': modified_seq,
             'islands': island_info,
             'original_length': len(sequence),
-            'modified_length': len(modified_seq)
+            'modified_length': len(modified_seq),
         }
 
     return results
 
 
-def insert_islands_into_sequence(sequence: str,
-                                n_islands: int,
-                                size_range: Tuple[int, int],
-                                min_spacing: int = 10000) -> Tuple[str, List[Dict]]:
+def insert_islands_into_sequence(
+    sequence: str, n_islands: int, size_range: Tuple[int, int], min_spacing: int = 10000
+) -> Tuple[str, List[Dict]]:
     """
     Insert synthetic islands into a single sequence
 
@@ -81,7 +84,9 @@ def insert_islands_into_sequence(sequence: str,
 
     # figure out where to put islands
     try:
-        positions = choose_island_positions(seq_len, n_islands, size_range[1], min_spacing)
+        positions = choose_island_positions(
+            seq_len, n_islands, size_range[1], min_spacing
+        )
     except ValueError:
         # If position choosing fails, return unchanged sequence
         return sequence, []
@@ -93,13 +98,15 @@ def insert_islands_into_sequence(sequence: str,
         island_type = choose_island_type()
         island_seq = generate_island_sequence(island_size, island_type)
 
-        islands.append({
-            'position': pos,
-            'size': island_size,
-            'type': island_type,
-            'sequence': island_seq,
-            'island_id': f'synthetic_island_{i+1}'
-        })
+        islands.append(
+            {
+                'position': pos,
+                'size': island_size,
+                'type': island_type,
+                'sequence': island_seq,
+                'island_id': f'synthetic_island_{i + 1}',
+            }
+        )
 
     # insert islands (go backwards so positions don't shift)
     modified_seq = sequence
@@ -113,13 +120,15 @@ def insert_islands_into_sequence(sequence: str,
         modified_seq = modified_seq[:pos] + island_seq + modified_seq[pos:]
 
         # record where it ended up
-        island_info.append({
-            'start': pos,
-            'end': pos + len(island_seq),
-            'type': island['type'],
-            'length': len(island_seq),
-            'island_id': island['island_id']
-        })
+        island_info.append(
+            {
+                'start': pos,
+                'end': pos + len(island_seq),
+                'type': island['type'],
+                'length': len(island_seq),
+                'island_id': island['island_id'],
+            }
+        )
 
     # reverse the list since we went backwards
     island_info.reverse()
@@ -127,10 +136,9 @@ def insert_islands_into_sequence(sequence: str,
     return modified_seq, island_info
 
 
-def choose_island_positions(seq_len: int,
-                          n_islands: int,
-                          max_island_size: int,
-                          min_spacing: int) -> List[int]:
+def choose_island_positions(
+    seq_len: int, n_islands: int, max_island_size: int, min_spacing: int
+) -> List[int]:
     """
     Choose random positions for island insertion
 
@@ -140,7 +148,7 @@ def choose_island_positions(seq_len: int,
     usable_length = seq_len - (n_islands * max_island_size) - (n_islands * min_spacing)
 
     if usable_length < 0:
-        raise ValueError(f"Sequence too short for {n_islands} islands with spacing")
+        raise ValueError(f'Sequence too short for {n_islands} islands with spacing')
 
     # generate random positions with spacing
     positions = []
@@ -180,7 +188,7 @@ def choose_island_type() -> str:
         'antibiotic_resistance',
         'metabolic',
         'transposon',
-        'plasmid_derived'
+        'plasmid_derived',
     ]
     return random.choice(island_types)
 
@@ -199,7 +207,7 @@ def generate_island_sequence(length: int, island_type: str) -> str:
         'metabolic': {'A': 0.28, 'T': 0.27, 'G': 0.23, 'C': 0.22},  # balanced
         'transposon': {'A': 0.35, 'T': 0.35, 'G': 0.15, 'C': 0.15},  # AT rich
         'plasmid_derived': {'A': 0.30, 'T': 0.25, 'G': 0.25, 'C': 0.20},  # mixed
-        'default': {'A': 0.35, 'T': 0.35, 'G': 0.15, 'C': 0.15}
+        'default': {'A': 0.35, 'T': 0.35, 'G': 0.15, 'C': 0.15},
     }
 
     comp = compositions.get(island_type, compositions['default'])
@@ -217,10 +225,9 @@ def generate_island_sequence(length: int, island_type: str) -> str:
     return island_seq
 
 
-def add_island_features(sequence: str,
-                       island_type: str,
-                       add_repeats: bool = True,
-                       add_genes: bool = True) -> str:
+def add_island_features(
+    sequence: str, island_type: str, add_repeats: bool = True, add_genes: bool = True
+) -> str:
     """
     Add realistic features to island sequences
 
@@ -245,8 +252,7 @@ def add_island_features(sequence: str,
     return modified_seq
 
 
-def generate_random_sequence(length: int,
-                           composition: Dict[str, float] = None) -> str:
+def generate_random_sequence(length: int, composition: Dict[str, float] = None) -> str:
     """generate random DNA sequence with given composition"""
     if composition is None:
         composition = {'A': 0.25, 'T': 0.25, 'G': 0.25, 'C': 0.25}
@@ -295,10 +301,12 @@ def insert_gene_patterns(sequence: str, island_type: str) -> str:
     return ''.join(seq_list)
 
 
-def save_island_data(sequence_data: Dict[str, any],
-                    output_prefix: str,
-                    save_fasta: bool = True,
-                    save_annotations: bool = True):
+def save_island_data(
+    sequence_data: Dict[str, any],
+    output_prefix: str,
+    save_fasta: bool = True,
+    save_annotations: bool = True,
+):
     """
     Save the modified sequences and island annotations
 
@@ -312,14 +320,16 @@ def save_island_data(sequence_data: Dict[str, any],
         from .io_handlers import save_fasta_sequences
 
         # save modified sequences
-        modified_seqs = {seq_id: data['modified_sequence']
-                        for seq_id, data in sequence_data.items()}
-        save_fasta_sequences(modified_seqs, f"{output_prefix}_with_islands.fasta")
+        modified_seqs = {
+            seq_id: data['modified_sequence'] for seq_id, data in sequence_data.items()
+        }
+        save_fasta_sequences(modified_seqs, f'{output_prefix}_with_islands.fasta')
 
         # save original sequences too
-        original_seqs = {seq_id: data['original_sequence']
-                        for seq_id, data in sequence_data.items()}
-        save_fasta_sequences(original_seqs, f"{output_prefix}_original.fasta")
+        original_seqs = {
+            seq_id: data['original_sequence'] for seq_id, data in sequence_data.items()
+        }
+        save_fasta_sequences(original_seqs, f'{output_prefix}_original.fasta')
 
     if save_annotations:
         import json
@@ -330,10 +340,10 @@ def save_island_data(sequence_data: Dict[str, any],
             annotations[seq_id] = {
                 'original_length': data['original_length'],
                 'modified_length': data['modified_length'],
-                'islands': data['islands']
+                'islands': data['islands'],
             }
 
-        with open(f"{output_prefix}_annotations.json", 'w') as f:
+        with open(f'{output_prefix}_annotations.json', 'w') as f:
             json.dump(annotations, f, indent=2)
 
-    print(f"Saved data with prefix: {output_prefix}")
+    print(f'Saved data with prefix: {output_prefix}')
