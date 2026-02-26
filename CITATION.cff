@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "KADAR: K-mer Anomaly Detection and Ranging"
+version: 0.1.0
+date-released: 2026-02-25
+authors:
+  - family-names: Lutze
+    given-names: Madeleine
+    affiliation: "The University of Melbourne"
+repository-code: "https://github.com/m-lutze/KADAR"
+license: GPL-3.0-or-later
+abstract: >-
+  "KADAR is a python library that provides several k-mer based sequence anomaly detection algorithms."
+keywords:
+  - HGT
+  - bioinformatics
