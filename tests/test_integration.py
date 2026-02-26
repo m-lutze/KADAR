@@ -2,10 +2,16 @@
 Integration tests for the full pipeline
 """
 
-import pytest
 import os
-import tempfile
-from kadar import KmerProfiler, GenomeIslandPredictor, load_fasta_sequences, read_and_insert_islands
+
+import pytest
+
+from kadar import (
+    GenomeIslandPredictor,
+    KmerProfiler,
+    load_fasta_sequences,
+    read_and_insert_islands,
+)
 
 
 class TestIntegration:
@@ -14,18 +20,18 @@ class TestIntegration:
     @pytest.fixture
     def small_fasta_path(self):
         """Path to smaller FASTA file for testing"""
-        path = "data/GCF_004022145.1_Paevar1_genomic.fasta"
+        path = 'data/GCF_004022145.1_Paevar1_genomic.fasta'
         if os.path.exists(path):
             return path
-        pytest.skip("Small FASTA file not found")
+        pytest.skip('Small FASTA file not found')
 
     @pytest.fixture
     def large_fasta_path(self):
         """Path to larger FASTA file for testing"""
-        path = "data/GCA_000219625.1.fasta"
+        path = 'data/GCA_000219625.1.fasta'
         if os.path.exists(path):
             return path
-        pytest.skip("Large FASTA file not found")
+        pytest.skip('Large FASTA file not found')
 
     def test_basic_pipeline_with_real_data(self, small_fasta_path):
         """Test basic pipeline with real genomic data"""
@@ -44,7 +50,7 @@ class TestIntegration:
                 profiler.add_sequence(seq_id, sequence)
 
         if len(profiler) == 0:
-            pytest.skip("No sequences long enough for testing")
+            pytest.skip('No sequences long enough for testing')
 
         # Test basic functionality
         stats = profiler.get_statistics()
@@ -64,30 +70,30 @@ class TestIntegration:
             n_islands=1,
             island_size_range=(2000, 5000),
             min_spacing=3000,
-            random_seed=42
+            random_seed=42,
         )
 
         # Should have processed some sequences
         successful_insertions = {
-            seq_id: data for seq_id, data in island_data.items()
+            seq_id: data
+            for seq_id, data in island_data.items()
             if len(data['islands']) > 0
         }
 
         if not successful_insertions:
-            pytest.skip("No sequences were long enough for island insertion")
+            pytest.skip('No sequences were long enough for island insertion')
 
         # Test with a sequence that had islands inserted
         seq_id, data = list(successful_insertions.items())[0]
 
         # Create profiler with both original and modified sequences
         profiler = KmerProfiler(k=4, num_hashes=500, scaled=0)
-        profiler.add_sequence(f"{seq_id}_original", data['original_sequence'])
-        profiler.add_sequence(f"{seq_id}_modified", data['modified_sequence'])
+        profiler.add_sequence(f'{seq_id}_original', data['original_sequence'])
+        profiler.add_sequence(f'{seq_id}_modified', data['modified_sequence'])
 
         # Calculate similarity between original and modified
         similarity = profiler.jaccard_similarity(
-            f"{seq_id}_original",
-            f"{seq_id}_modified"
+            f'{seq_id}_original', f'{seq_id}_modified'
         )
 
         # Check if islands were actually inserted
@@ -106,7 +112,7 @@ class TestIntegration:
             n_islands=2,
             island_size_range=(3000, 6000),
             min_spacing=5000,
-            random_seed=42
+            random_seed=42,
         )
 
         # Find sequences with successful insertions
@@ -118,7 +124,7 @@ class TestIntegration:
                     break
 
         if len(valid_sequences) < 2:
-            pytest.skip("Not enough valid sequences for predictor testing")
+            pytest.skip('Not enough valid sequences for predictor testing')
 
         # Create profiler with modified sequences
         profiler = KmerProfiler(k=4, scaled=1000)
@@ -138,7 +144,7 @@ class TestIntegration:
             assert 'transformed_data' in pca_result
         except Exception as e:
             # PCA might fail with very similar sequences
-            print(f"PCA analysis failed (expected): {e}")
+            print(f'PCA analysis failed (expected): {e}')
 
         # Test clustering
         try:
@@ -146,7 +152,7 @@ class TestIntegration:
             assert 'labels' in clustering_result
             assert 'method' in clustering_result
         except Exception as e:
-            print(f"Clustering analysis failed (expected): {e}")
+            print(f'Clustering analysis failed (expected): {e}')
 
     def test_sliding_window_analysis(self, small_fasta_path):
         """Test sliding window analysis on sequences with islands"""
@@ -156,22 +162,21 @@ class TestIntegration:
             n_islands=1,
             island_size_range=(3000, 5000),
             min_spacing=10000,
-            random_seed=42
+            random_seed=42,
         )
 
         # Find a sequence with islands
         test_seq_data = None
-        for seq_id, data in island_data.items():
+        for _seq_id, data in island_data.items():
             if len(data['islands']) > 0 and data['modified_length'] > 20000:
                 test_seq_data = data
-                test_seq_id = seq_id
                 break
 
         if test_seq_data is None:
-            pytest.skip("No suitable sequence found for sliding window test")
+            pytest.skip('No suitable sequence found for sliding window test')
 
         # Create profiler
-        profiler = KmerProfiler(k=4, scaled=1000)
+        KmerProfiler(k=4, scaled=1000)
 
         # Perform sliding window analysis
         sequence = test_seq_data['modified_sequence']
@@ -184,7 +189,7 @@ class TestIntegration:
         for start in range(0, len(sequence) - window_size + 1, step_size):
             end = start + window_size
             window_seq = sequence[start:end]
-            window_id = f"window_{start}_{end}"
+            window_id = f'window_{start}_{end}'
 
             # Create temporary profiler for this window
             temp_profiler = KmerProfiler(k=4, scaled=1000)
@@ -208,10 +213,16 @@ class TestIntegration:
 
             # Create combined profiler for comparison
             combined_profiler = KmerProfiler(k=4, scaled=1000)
-            combined_profiler.add_sequence(window_ids[0], list(prof1.sequences.values())[0])
-            combined_profiler.add_sequence(window_ids[1], list(prof2.sequences.values())[0])
+            combined_profiler.add_sequence(
+                window_ids[0], list(prof1.sequences.values())[0]
+            )
+            combined_profiler.add_sequence(
+                window_ids[1], list(prof2.sequences.values())[0]
+            )
 
-            similarity = combined_profiler.jaccard_similarity(window_ids[0], window_ids[1])
+            similarity = combined_profiler.jaccard_similarity(
+                window_ids[0], window_ids[1]
+            )
             assert 0 <= similarity <= 1
 
     def test_memory_efficiency_large_file(self, large_fasta_path):
@@ -226,7 +237,7 @@ class TestIntegration:
 
         # Test with sourmash (should be memory efficient)
         profiler = KmerProfiler(k=6, scaled=2000)  # Larger k, larger scale
-        profiler.add_sequence("test_seq", first_seq)
+        profiler.add_sequence('test_seq', first_seq)
 
         # Should work without memory issues
         stats = profiler.get_statistics()
@@ -240,12 +251,12 @@ class TestIntegration:
         """Test error handling throughout the pipeline"""
         # Test with invalid file
         with pytest.raises(FileNotFoundError):
-            load_fasta_sequences("nonexistent.fasta")
+            load_fasta_sequences('nonexistent.fasta')
 
         # Test profiler with invalid sequences
         profiler = KmerProfiler(k=4)
         with pytest.raises(ValueError):
-            profiler.add_sequence("invalid", "ATCGXYZ")
+            profiler.add_sequence('invalid', 'ATCGXYZ')
 
         # Test predictor with empty profiler
         empty_profiler = KmerProfiler(k=4)
@@ -260,7 +271,7 @@ class TestIntegration:
             n_islands=1,
             island_size_range=(2000, 4000),
             min_spacing=3000,
-            random_seed=12345
+            random_seed=12345,
         )
 
         island_data2 = read_and_insert_islands(
@@ -268,7 +279,7 @@ class TestIntegration:
             n_islands=1,
             island_size_range=(2000, 4000),
             min_spacing=3000,
-            random_seed=12345
+            random_seed=12345,
         )
 
         # Results should be identical

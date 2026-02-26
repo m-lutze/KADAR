@@ -2,9 +2,11 @@
 Unit tests for IO handlers
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
+
+import pytest
+
 from kadar.utils.io_handlers import load_fasta_sequences, save_fasta_sequences
 
 
@@ -14,7 +16,7 @@ class TestIOHandlers:
     def test_load_fasta_basic(self):
         """Test basic FASTA loading with real data"""
         # Test with the actual data file
-        fasta_path = "data/GCA_000219625.1.fasta"
+        fasta_path = 'data/GCA_000219625.1.fasta'
         if os.path.exists(fasta_path):
             sequences = load_fasta_sequences(fasta_path)
 
@@ -29,7 +31,7 @@ class TestIOHandlers:
 
     def test_load_fasta_small_file(self):
         """Test FASTA loading with small test file"""
-        fasta_path = "data/GCF_004022145.1_Paevar1_genomic.fasta"
+        fasta_path = 'data/GCF_004022145.1_Paevar1_genomic.fasta'
         if os.path.exists(fasta_path):
             sequences = load_fasta_sequences(fasta_path)
 
@@ -41,9 +43,9 @@ class TestIOHandlers:
     def test_save_and_load_fasta(self):
         """Test saving and loading FASTA files"""
         test_sequences = {
-            "seq1": "ATCGATCGATCGATCG",
-            "seq2": "GCTAGCTAGCTAGCTA",
-            "seq3": "AAAAAATTTTTTGGGGGGCCCCCC"
+            'seq1': 'ATCGATCGATCGATCG',
+            'seq2': 'GCTAGCTAGCTAGCTA',
+            'seq3': 'AAAAAATTTTTTGGGGGGCCCCCC',
         }
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.fasta', delete=False) as f:
@@ -70,8 +72,8 @@ class TestIOHandlers:
 
     def test_save_fasta_with_line_wrapping(self):
         """Test FASTA saving with line length control"""
-        long_sequence = "A" * 200  # 200 bp sequence
-        test_sequences = {"long_seq": long_sequence}
+        long_sequence = 'A' * 200  # 200 bp sequence
+        test_sequences = {'long_seq': long_sequence}
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.fasta', delete=False) as f:
             temp_path = f.name
@@ -98,7 +100,7 @@ class TestIOHandlers:
     def test_load_nonexistent_file(self):
         """Test error handling for nonexistent files"""
         with pytest.raises(FileNotFoundError):
-            load_fasta_sequences("nonexistent_file.fasta")
+            load_fasta_sequences('nonexistent_file.fasta')
 
     def test_empty_fasta_file(self):
         """Test handling of empty FASTA file"""
@@ -107,7 +109,7 @@ class TestIOHandlers:
             # Write nothing
 
         try:
-            with pytest.raises(ValueError, match="No sequences found"):
+            with pytest.raises(ValueError, match='No sequences found'):
                 load_fasta_sequences(temp_path)
         finally:
             if os.path.exists(temp_path):
@@ -150,8 +152,8 @@ ATCGATCG
             sequences = load_fasta_sequences(temp_path)
 
             # Should load seq2, others might be empty
-            assert "seq2" in sequences
-            assert sequences["seq2"] == "ATCGATCG"
+            assert 'seq2' in sequences
+            assert sequences['seq2'] == 'ATCGATCG'
 
         finally:
             if os.path.exists(temp_path):
@@ -169,11 +171,11 @@ ATCGRYSWKMBDHVN-ATCG
 
         try:
             sequences = load_fasta_sequences(temp_path)
-            assert "seq_with_special" in sequences
+            assert 'seq_with_special' in sequences
             # Should preserve special characters
-            assert "R" in sequences["seq_with_special"]
-            assert "N" in sequences["seq_with_special"]
-            assert "-" in sequences["seq_with_special"]
+            assert 'R' in sequences['seq_with_special']
+            assert 'N' in sequences['seq_with_special']
+            assert '-' in sequences['seq_with_special']
 
         finally:
             if os.path.exists(temp_path):
@@ -194,8 +196,10 @@ CCCCCCTTTTTTAAAA
 
         try:
             sequences = load_fasta_sequences(temp_path)
-            expected = "ATCGATCGATCGATCGGCTAGCTAGCTAGCTAAAAAAATTTTTTGGGGCCCCCCTTTTTTAAAA"
-            assert sequences["multi_line_seq"] == expected
+            expected = (
+                'ATCGATCGATCGATCGGCTAGCTAGCTAGCTAAAAAAATTTTTTGGGGCCCCCCTTTTTTAAAA'
+            )
+            assert sequences['multi_line_seq'] == expected
 
         finally:
             if os.path.exists(temp_path):

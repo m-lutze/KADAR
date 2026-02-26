@@ -2,16 +2,18 @@
 Unit tests for synthetic data generation
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
+
+import pytest
+
 from kadar.utils.synthetic_data import (
-    read_and_insert_islands,
-    insert_islands_into_sequence,
     choose_island_positions,
     choose_island_type,
     generate_island_sequence,
-    save_island_data
+    insert_islands_into_sequence,
+    read_and_insert_islands,
+    save_island_data,
 )
 
 
@@ -45,8 +47,12 @@ class TestSyntheticData:
         types = [choose_island_type() for _ in range(20)]
 
         valid_types = {
-            'prophage', 'pathogenicity', 'antibiotic_resistance',
-            'metabolic', 'transposon', 'plasmid_derived'
+            'prophage',
+            'pathogenicity',
+            'antibiotic_resistance',
+            'metabolic',
+            'transposon',
+            'plasmid_derived',
         }
 
         assert all(t in valid_types for t in types)
@@ -60,7 +66,9 @@ class TestSyntheticData:
         max_island_size = 5000
         min_spacing = 2000
 
-        positions = choose_island_positions(seq_len, n_islands, max_island_size, min_spacing)
+        positions = choose_island_positions(
+            seq_len, n_islands, max_island_size, min_spacing
+        )
 
         assert len(positions) == n_islands
         assert all(0 <= pos < seq_len for pos in positions)
@@ -68,7 +76,7 @@ class TestSyntheticData:
         # Check spacing
         sorted_pos = sorted(positions)
         for i in range(1, len(sorted_pos)):
-            spacing = sorted_pos[i] - sorted_pos[i-1]
+            spacing = sorted_pos[i] - sorted_pos[i - 1]
             assert spacing >= min_spacing
 
     def test_choose_island_positions_insufficient_space(self):
@@ -78,12 +86,12 @@ class TestSyntheticData:
         max_island_size = 500
         min_spacing = 200
 
-        with pytest.raises(ValueError, match="too short"):
+        with pytest.raises(ValueError, match='too short'):
             choose_island_positions(seq_len, n_islands, max_island_size, min_spacing)
 
     def test_insert_islands_into_sequence(self):
         """Test inserting islands into a sequence"""
-        original_seq = "A" * 50000  # 50kb of As
+        original_seq = 'A' * 50000  # 50kb of As
         n_islands = 2
         size_range = (1000, 3000)
         min_spacing = 2000
@@ -110,13 +118,13 @@ class TestSyntheticData:
         # Check that islands don't overlap and maintain spacing
         sorted_islands = sorted(island_info, key=lambda x: x['start'])
         for i in range(1, len(sorted_islands)):
-            prev_end = sorted_islands[i-1]['end']
+            prev_end = sorted_islands[i - 1]['end']
             curr_start = sorted_islands[i]['start']
             assert curr_start >= prev_end  # No overlap
 
     def test_read_and_insert_islands_with_real_data(self):
         """Test reading real FASTA and inserting islands"""
-        fasta_path = "data/GCF_004022145.1_Paevar1_genomic.fasta"
+        fasta_path = 'data/GCF_004022145.1_Paevar1_genomic.fasta'
 
         if os.path.exists(fasta_path):
             result = read_and_insert_islands(
@@ -124,12 +132,12 @@ class TestSyntheticData:
                 n_islands=1,  # Use fewer islands for smaller sequences
                 island_size_range=(1000, 3000),
                 min_spacing=2000,
-                random_seed=42
+                random_seed=42,
             )
 
             assert len(result) > 0
 
-            for seq_id, data in result.items():
+            for _seq_id, data in result.items():
                 assert 'original_sequence' in data
                 assert 'modified_sequence' in data
                 assert 'islands' in data
@@ -147,52 +155,55 @@ class TestSyntheticData:
         """Test saving island data"""
         # Create test data
         test_data = {
-            "seq1": {
-                'original_sequence': "ATCGATCG" * 1000,
-                'modified_sequence': "ATCGATCG" * 1000 + "GCTAGCTA" * 500,
+            'seq1': {
+                'original_sequence': 'ATCGATCG' * 1000,
+                'modified_sequence': 'ATCGATCG' * 1000 + 'GCTAGCTA' * 500,
                 'islands': [
                     {
                         'start': 8000,
                         'end': 12000,
                         'type': 'prophage',
                         'length': 4000,
-                        'island_id': 'synthetic_island_1'
+                        'island_id': 'synthetic_island_1',
                     }
                 ],
                 'original_length': 8000,
-                'modified_length': 12000
+                'modified_length': 12000,
             }
         }
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            output_prefix = os.path.join(temp_dir, "test")
+            output_prefix = os.path.join(temp_dir, 'test')
 
             save_island_data(test_data, output_prefix)
 
             # Check that files were created
-            assert os.path.exists(f"{output_prefix}_with_islands.fasta")
-            assert os.path.exists(f"{output_prefix}_original.fasta")
-            assert os.path.exists(f"{output_prefix}_annotations.json")
+            assert os.path.exists(f'{output_prefix}_with_islands.fasta')
+            assert os.path.exists(f'{output_prefix}_original.fasta')
+            assert os.path.exists(f'{output_prefix}_annotations.json')
 
             # Check JSON annotations
             import json
-            with open(f"{output_prefix}_annotations.json") as f:
+
+            with open(f'{output_prefix}_annotations.json') as f:
                 annotations = json.load(f)
 
-            assert "seq1" in annotations
-            assert annotations["seq1"]["original_length"] == 8000
-            assert len(annotations["seq1"]["islands"]) == 1
+            assert 'seq1' in annotations
+            assert annotations['seq1']['original_length'] == 8000
+            assert len(annotations['seq1']['islands']) == 1
 
     def test_insert_islands_edge_cases(self):
         """Test edge cases for island insertion"""
         # Very short sequence - should return unchanged
-        short_seq = "ATCGATCG"
-        modified_seq, island_info = insert_islands_into_sequence(short_seq, 1, (100, 200), 50)
+        short_seq = 'ATCGATCG'
+        modified_seq, island_info = insert_islands_into_sequence(
+            short_seq, 1, (100, 200), 50
+        )
         assert modified_seq == short_seq  # Should be unchanged
         assert len(island_info) == 0  # No islands should be inserted
 
         # Zero islands
-        normal_seq = "A" * 10000
+        normal_seq = 'A' * 10000
         modified_seq, island_info = insert_islands_into_sequence(
             normal_seq, 0, (100, 200), 50
         )
@@ -223,8 +234,9 @@ class TestSyntheticData:
 
     def test_island_generation_reproducibility(self):
         """Test that island generation is reproducible with same seed"""
-        import numpy as np
         import random
+
+        import numpy as np
 
         # Generate with same seed
         np.random.seed(42)
