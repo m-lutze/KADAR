@@ -1,0 +1,37 @@
+[package]
+name = "kadar"
+version = "0.1.0"
+edition = "2021"
+description = "KADAR is a python library that provides several k-mer based sequence anomaly detection algorithms."
+license = "GPL-3.0-or-later"
+
+[lib]
+name = "_kadar"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "kadar"
+path = "src/main.rs"
+
+[dependencies]
+pyo3 = { version = "0.28", features = ["extension-module"] }
+# needletail is optional so that wasm32-unknown-emscripten builds (which use
+# --no-default-features) can exclude it entirely.  emcc cannot link needletail
+# even without its C compression backends because it tries to produce a
+# standalone .wasm for every crate, which requires a `main` symbol.
+needletail = { version = "0.6", default-features = false, optional = true }
+bio = "3.0"
+serde = { version = "1.0", features = ["derive"] }
+postcard = { version = "1", features = ["use-std"] }
+ahash = "0.8"
+thiserror = "2.0"
+
+[features]
+# Native (default): FASTA file reading via needletail + bzip2/xz/zstd compression.
+# Wasm builds use --no-default-features to exclude needletail entirely.
+default = ["fasta", "compression"]
+fasta = ["dep:needletail"]
+compression = ["needletail/compression"]
+
+[dev-dependencies]
+tempfile = "3.26"
