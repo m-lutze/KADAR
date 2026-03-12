@@ -34,4 +34,4 @@ fasta = ["dep:needletail"]
 compression = ["needletail/compression"]
 
 [dev-dependencies]
-tempfile = "3.26"
+tempfile = "3.27"
