@@ -19,7 +19,7 @@ pyo3 = { version = "0.28", features = ["extension-module"] }
 # --no-default-features) can exclude it entirely.  emcc cannot link needletail
 # even without its C compression backends because it tries to produce a
 # standalone .wasm for every crate, which requires a `main` symbol.
-needletail = { version = "0.6", default-features = false, optional = true }
+needletail = { version = "0.7", default-features = false, optional = true }
 bio = "3.0"
 serde = { version = "1.0", features = ["derive"] }
 postcard = { version = "1", features = ["use-std"] }
