@@ -52,8 +52,7 @@ repository = "https://github.com/m-lutze/KADAR"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
-python-source = "python"
-module-name = "kadar._kadar"
+module-name = "kadar"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=kadar --cov-branch --cov-report=xml --cov-report=term"

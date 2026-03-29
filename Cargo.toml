@@ -6,7 +6,7 @@ description = "KADAR is a python library that provides several k-mer based seque
 license = "GPL-3.0-or-later"
 
 [lib]
-name = "_kadar"
+name = "kadar"
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
@@ -14,7 +14,8 @@ name = "kadar"
 path = "src/main.rs"
 
 [dependencies]
-pyo3 = { version = "0.28", features = ["extension-module"] }
+# PyO3 is optional - only needed for Python bindings
+pyo3 = { version = "0.28", features = ["extension-module", "auto-initialize"], optional = true }
 # needletail is optional so that wasm32-unknown-emscripten builds (which use
 # --no-default-features) can exclude it entirely.  emcc cannot link needletail
 # even without its C compression backends because it tries to produce a
@@ -27,6 +28,10 @@ ahash = "0.8"
 thiserror = "2.0"
 
 [features]
+# Default: Python bindings + FASTA support
+default = ["python", "fasta", "compression"]
+# Python bindings via PyO3
+python = ["dep:pyo3"]
 # Native (default): FASTA file reading via needletail + bzip2/xz/zstd compression.
 # Wasm builds use --no-default-features to exclude needletail entirely.
 default = ["fasta", "compression"]
