@@ -121,7 +121,7 @@ jobs:
       - name: Build native wheel
         run: maturin build --release
       - name: Upload native wheel artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: native-wheel
           path: target/wheels/*.whl
@@ -166,7 +166,7 @@ jobs:
           --no-default-features
           -i python3.12
       - name: Upload wasm wheel artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wasm-wheel
           path: target/wheels/*.whl
