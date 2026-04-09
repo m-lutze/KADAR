@@ -138,7 +138,7 @@ jobs:
         with:
           targets: wasm32-unknown-emscripten
       - name: Set up Emscripten SDK
-        uses: mymindstorm/setup-emsdk@v14
+        uses: mymindstorm/setup-emsdk@v16
         with:
           # 3.1.65 is the version used by Pyodide 0.27.
           # wasm-opt is bypassed entirely via .cargo/config.toml (opt-level=0
